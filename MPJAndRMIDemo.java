@@ -76,7 +76,7 @@ public class MPJAndRMIDemo {
             int[] rbuf = new int[1];
             
 
-            MPI.COMM_WORLD.Isend(buf, 0, buf.length, MPI.CHAR, DEST, cn);
+            MPI.COMM_WORLD.Send(buf, 0, buf.length, MPI.CHAR, DEST, cn);
             MPI.COMM_WORLD.Recv(rbuf, 0, rbuf.length, MPI.INT, DEST,cn);
           
             System.out.println(String.format("** %d: foo called", cn));
@@ -91,7 +91,7 @@ public class MPJAndRMIDemo {
 
     static class MasterNode {
         private static void main(String[] args) {
-            System.out.println("Master");
+            System.out.println("MasterNode running...");
             System.out.println("TRY start listening");
             SampleAPI api = new SampleAPI();
             try {
@@ -116,15 +116,20 @@ public class MPJAndRMIDemo {
     static class ChildNode {
         public static void main(String[] args) {
                     char[] buf = new char[10];
+                    int[] res_buf = new int[BUF_LENGTH_TEST];
                     int[] foo = new int[BUF_LENGTH_TEST]; 
-                    for(int i = 0; i < NCLIENTS_TEST; i++) { 
-
+                    for(int i = 0; i < NCLIENTS_TEST; i++) {
+                        Status s = MPI.COMM_WORLD.Recv(buf, 0, buf.length, MPI.INT, MASTER, MPI.ANY_TAG);
+                        int result = Problem.calculateEq(String.valueOf(buf));
+                        System.out.println("Calculated result is: " + result);
+                        res_buf[0] = result;
+                        MPI.COMM_WORLD.Send(res_buf, 0, res_buf.length, MPI.INT, MASTER, s.tag);
                         //  TODOs recevies the mathematical equation send by master node for each client and after evaluating 
                         //    that equation, send the result back to master node. 
                         
                     }
                     // sending signal to master to terminate the simulation
-                    MPI.COMM_WORLD.Isend(foo, 0, foo.length, MPI.INT, MASTER, 0);
+                    MPI.COMM_WORLD.Send(foo, 0, foo.length, MPI.INT, MASTER, 0);
             }
             
         

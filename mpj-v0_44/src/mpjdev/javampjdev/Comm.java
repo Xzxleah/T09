@@ -378,10 +378,9 @@ public class Comm extends mpjdev.Comm {
                 sbuf.putSectionHeader(Type.INT);
                 sbuf.write(intdata, 0, 1);
                 sbuf.commit();
-                req = device.isend(sbuf, peergroup.ids[remoteleader],
+                req = device.Sendrecv(sbuf, peergroup.ids[remoteleader],
                                    tag, peercontext);
-                
-                
+
                 device.recv(rbuf, peergroup.ids[remoteleader],
                             tag, peercontext);
                 rbuf.commit();
@@ -410,7 +409,7 @@ public class Comm extends mpjdev.Comm {
                     intdata[0] = remoteleader ;
                     sbuf.write(intdata, 0, 1);
                     sbuf.commit();
-                    req = device.isend(sbuf, peergroup.ids[remoteleader],
+                    req = device.Sendrecv(sbuf, peergroup.ids[remoteleader],
                                        tag, peercontext);
                     
                     
