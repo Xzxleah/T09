@@ -128,6 +128,10 @@ public class RMIServer {
             invoke(() -> MPI.COMM_WORLD.Sendrecv(buf, offset, len, stype, dest, stag, rbuf, roffset, rlen, rtype, src, rtag));
         }
 
+        public void Recv(final Object buf, final int offset, final int len, final Datatype stype, final int dest, final int stag){
+            invoke(() -> MPI.COMM_WORLD.Recv(buf, offset, len, stype, dest, stag));
+        }
+
         // TODO other MPI calls may be implemented here...
     }
 }

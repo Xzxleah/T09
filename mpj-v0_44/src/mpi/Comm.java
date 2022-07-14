@@ -381,7 +381,7 @@ public class Comm {
   public void Send(Object buf, int offset, int count, Datatype datatype,
       int dest, int tag) throws MPIException {
     try {
-      send(buf, offset, count, datatype, dest, tag, true);
+       sendrecv(buf, offset, count, datatype, dest, tag, true);
     }
     catch (MPIException mpie) {
       throw mpie;

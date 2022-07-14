@@ -67,7 +67,7 @@ public class MPJAndRMIDemo {
             synchronized (callno) {
                 cn = ++callno;
             }
-            System.out.println(String.format("** %d: calling foo", cn));
+            System.out.println(String.format("Client%d: calling foo", cn));
             System.out.println("Equation received from client "+ cn+ " is : "+a);
             char[] buf = new char[a.length()];
             for (int i = 0; i < a.length(); i++) {
@@ -76,12 +76,11 @@ public class MPJAndRMIDemo {
             int[] rbuf = new int[1];
             
 
-            MPI.COMM_WORLD.Send(buf, 0, buf.length, MPI.CHAR, DEST, cn);
-            MPI.COMM_WORLD.Recv(rbuf, 0, rbuf.length, MPI.INT, DEST,cn);
-          
-            System.out.println(String.format("** %d: foo called", cn));
-          
-            return rbuf[0]; // receiving a message from DEST
+            //RMIServer.MPI_PROXY.Send(buf, 0, buf.length, MPI.CHAR, DEST, cn);
+            RMIServer.MPI_PROXY.Sendrecv(buf, 0, buf.length, MPI.CHAR, DEST, cn,rbuf, 0, rbuf.length, MPI.INT, DEST,cn);
+
+            System.out.println("Client"+cn+ " calculated " + rbuf[0]);
+            return rbuf[0]; // receiving the calculated result from DEST
         }
 
         public void quit() throws RemoteException {
@@ -115,19 +114,24 @@ public class MPJAndRMIDemo {
 
     static class ChildNode {
         public static void main(String[] args) {
-                    char[] buf = new char[10];
+                    char[] buf = new char[3];
                     int[] res_buf = new int[BUF_LENGTH_TEST];
-                    int[] foo = new int[BUF_LENGTH_TEST]; 
+                    int[] foo = new int[BUF_LENGTH_TEST];
+                    int client;
                     for(int i = 0; i < NCLIENTS_TEST; i++) {
-                        Status s = MPI.COMM_WORLD.Recv(buf, 0, buf.length, MPI.INT, MASTER, MPI.ANY_TAG);
+                        Status s = MPI.COMM_WORLD.Recv(buf, 0, buf.length, MPI.CHAR, MASTER, MPI.ANY_TAG);
+                        client = s.tag;
+                        //System.out.println("Now is #" + i);
+                        System.out.println("ChildNode received (" + String.valueOf(buf) + ") from Client" + client);
                         int result = Problem.calculateEq(String.valueOf(buf));
                         System.out.println("Calculated result is: " + result);
                         res_buf[0] = result;
-                        MPI.COMM_WORLD.Send(res_buf, 0, res_buf.length, MPI.INT, MASTER, s.tag);
+                        MPI.COMM_WORLD.Send(res_buf, 0, 1, MPI.INT, MASTER, client);
                         //  TODOs recevies the mathematical equation send by master node for each client and after evaluating 
                         //    that equation, send the result back to master node. 
                         
                     }
+
                     // sending signal to master to terminate the simulation
                     MPI.COMM_WORLD.Send(foo, 0, foo.length, MPI.INT, MASTER, 0);
             }
